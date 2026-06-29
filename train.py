@@ -23,6 +23,7 @@ import torch
 from transformers import (
     DataCollatorForLanguageModeling,
     TrainingArguments,
+    EarlyStoppingCallback,
     set_seed,
 )
 
@@ -139,6 +140,9 @@ def build_training_args(config: PipelineConfig, num_samples: int) -> TrainingArg
         lr_scheduler_type="linear",
         seed=config.model.seed,
         report_to="none",
+        # Early stopping requires loading the best model
+        load_best_model_at_end=(tr.early_stopping_patience > 0),
+        metric_for_best_model="eval_loss" if (tr.early_stopping_patience > 0) else None,
         # DDP / gradient-checkpointing safety flags
         ddp_find_unused_parameters=False,
         gradient_checkpointing_kwargs={"use_reentrant": False},
@@ -258,14 +262,22 @@ def main() -> None:
     # ------------------------------------------------------------------
     training_args = build_training_args(config, len(train_dataset))
 
-    trainer = NativeSafeTrainer(
-        model=model,
-        processing_class=tokenizer,
-        train_dataset=train_dataset,
-        eval_dataset=eval_dataset,
-        data_collator=data_collator,
-        args=training_args,
-    )
+    trainer_kwargs = {
+        "model": model,
+        "processing_class": tokenizer,
+        "train_dataset": train_dataset,
+        "eval_dataset": eval_dataset,
+        "data_collator": data_collator,
+        "args": training_args,
+    }
+    
+    if config.training.early_stopping_patience > 0:
+        trainer_kwargs["callbacks"] = [
+            EarlyStoppingCallback(early_stopping_patience=config.training.early_stopping_patience)
+        ]
+        logger.info("Early stopping enabled (patience=%d)", config.training.early_stopping_patience)
+
+    trainer = NativeSafeTrainer(**trainer_kwargs)
 
     logger.info("Starting training …")
     trainer.train()

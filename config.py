@@ -110,6 +110,11 @@ class TrainingConfig:
     # If int: absolute number of samples (e.g., 500)
     # If None or 1.0: use the full dataset
     eval_subset_size: Union[int, float] = 0.2
+    
+    # ── Early Stopping ───────────────────────────────────────────
+    # Number of eval calls with no improvement before stopping
+    # Set to 0 to disable early stopping
+    early_stopping_patience: int = 3
 
     def __post_init__(self) -> None:
         if isinstance(self.format, str):

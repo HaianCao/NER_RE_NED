@@ -62,6 +62,9 @@ training:
   
   # Fraction (0.2) or exact number (500) of eval samples to run during training
   eval_subset_size: 0.2
+  
+  # Number of eval loops without eval_loss improvement before stopping (0 to disable)
+  early_stopping_patience: 3
 
 # ── Data ─────────────────────────────────────────────────────
 # Each entry:
