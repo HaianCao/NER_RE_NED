@@ -281,14 +281,11 @@ def main() -> None:
         logger.info("LoRA adapter saved to: %s", lora_path)
 
         # ── 7b. Merged model (base + LoRA, ready for inference) ───────
-        # merge_and_unload() fuses the adapter weights into the base model
-        # and returns a standard HuggingFace PreTrainedModel (no Unsloth
-        # dependency needed at inference time).
-        logger.info("Merging LoRA weights into base model …")
-        merged_model = trainer.model.merge_and_unload()
+        # Since the base model is 4-bit quantised, standard PEFT merge_and_unload()
+        # fails with NotImplementedError. Unsloth provides a native method for this.
+        logger.info("Merging LoRA weights into base model (16-bit) …")
         merged_path = os.path.join(config.training.output_dir, "final_merged_model")
-        merged_model.save_pretrained(merged_path, safe_serialization=True)
-        tokenizer.save_pretrained(merged_path)
+        trainer.model.save_pretrained_merged(merged_path, tokenizer, save_method="merged_16bit")
         logger.info("Merged model saved to: %s", merged_path)
 
         logger.info(
