@@ -101,10 +101,21 @@ cfg["data"]["train_files"] = [
     {"path": "/kaggle/input/n2c2-eng/n2c2_2010_train_en.jsonl", "language": "auto"},
     {"path": "/kaggle/input/n2c2-eng/n2c2_2010_train_vi.jsonl", "language": "auto"},
 ]
+# Dev files for Early Stopping
 cfg["data"]["eval_files"] = [
     {"path": "/kaggle/input/n2c2-eng/n2c2_2010_test_en.jsonl", "language": "auto"},
     {"path": "/kaggle/input/n2c2-eng/n2c2_2010_test_vi.jsonl", "language": "auto"},
 ]
+# Test files for Final Evaluation (F1/Precision/Recall)
+cfg["data"]["test_files"] = [
+    {"path": "/kaggle/input/n2c2-eng/n2c2_2010_test_en.jsonl", "language": "auto"},
+    {"path": "/kaggle/input/n2c2-eng/n2c2_2010_test_vi.jsonl", "language": "auto"},
+]
+
+# Fast validation / Early stopping tweaks
+cfg["training"]["eval_subset_size"] = 0.2     # Use 20% of Dev set during training for speed
+cfg["training"]["early_stopping_patience"] = 3 # Stop if loss doesn't improve for 3 checks
+
 
 with open(MY_CONFIG, "w") as f:
     yaml.dump(cfg, f, allow_unicode=True)
@@ -132,11 +143,25 @@ CONFIG = "/kaggle/working/my_config.yaml"   # or use default.yaml
 > **Note:** The `2>&1 | tee` part captures both stdout and stderr into
 > `training_log.txt` while still showing output in the notebook.
 
-### Cell 6 — Check the saved model
+### Cell 6 — Evaluate the trained model (Test Phase)
+
+During training, the model only tracks `eval_loss` on the Dev set (fast).
+To calculate actual F1, Precision, and Recall, we must generate text on the **Test set** (which is slower).
+
+```python
+CONFIG = "/kaggle/working/my_config.yaml"   # or use default.yaml
+
+!python /kaggle/working/NER_RE_NED/evaluate.py \
+    --config {CONFIG} \
+    --checkpoint /kaggle/working/outputs/final_lora_adapter \
+    --batch_size 8
+```
+
+### Cell 7 — (Optional) Explore the output directory
 ```python
 import os
-model_path = "/kaggle/working/outputs/final_lora_model"
-print(os.listdir(model_path))
+print(os.listdir("/kaggle/working/outputs/final_lora_adapter"))
+print(os.listdir("/kaggle/working/outputs/final_merged_model"))
 ```
 
 ---
