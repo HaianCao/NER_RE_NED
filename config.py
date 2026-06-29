@@ -104,6 +104,12 @@ class TrainingConfig:
     logging_steps: int = 10
     eval_steps: int = 50
     save_steps: int = 50
+    
+    # ── Dev subset (for faster evaluation during training) ───────
+    # If float: fraction of the eval dataset (e.g., 0.2 for 20%)
+    # If int: absolute number of samples (e.g., 500)
+    # If None or 1.0: use the full dataset
+    eval_subset_size: Union[int, float] = 0.2
 
     def __post_init__(self) -> None:
         if isinstance(self.format, str):

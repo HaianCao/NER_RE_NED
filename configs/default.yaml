@@ -59,6 +59,9 @@ training:
   logging_steps: 10
   eval_steps: 50
   save_steps: 50
+  
+  # Fraction (0.2) or exact number (500) of eval samples to run during training
+  eval_subset_size: 0.2
 
 # ── Data ─────────────────────────────────────────────────────
 # Each entry:

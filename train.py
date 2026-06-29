@@ -222,6 +222,22 @@ def main() -> None:
         load_from_cache_file=False,
     )
 
+    # Subset eval dataset to speed up validation during training
+    subset_val = config.training.eval_subset_size
+    if subset_val is not None and subset_val != 1.0:
+        if isinstance(subset_val, float):
+            subset_size = int(len(eval_dataset) * subset_val)
+        else:
+            subset_size = subset_val
+            
+        subset_size = max(1, min(subset_size, len(eval_dataset)))
+        logger.info(
+            "Subsetting eval dataset to %s (%d samples) for faster validation during training.",
+            f"{int(subset_val * 100)}%%" if isinstance(subset_val, float) else f"{subset_val} items",
+            subset_size
+        )
+        eval_dataset = eval_dataset.select(range(subset_size))
+
     # ------------------------------------------------------------------
     # 5. Data collator — choose based on format
     # ------------------------------------------------------------------
