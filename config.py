@@ -151,6 +151,10 @@ class DataConfig:
             DataFileEntry(**f) if isinstance(f, dict) else f
             for f in self.eval_files
         ]
+        self.test_files = [
+            DataFileEntry(**f) if isinstance(f, dict) else f
+            for f in self.test_files
+        ]
 
 
 @dataclass
