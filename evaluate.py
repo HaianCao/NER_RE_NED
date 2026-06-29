@@ -37,6 +37,7 @@ def main():
         level=logging.INFO if accelerator.is_main_process else logging.ERROR,
         format="%(asctime)s [%(levelname)s] %(name)s — %(message)s",
         handlers=[logging.StreamHandler(sys.stdout)],
+        force=True,
     )
     
     config = PipelineConfig.from_yaml(args.config)
