@@ -14,8 +14,8 @@ import logging
 import sys
 from tqdm import tqdm
 
-from transformers import set_seed
 from unsloth import FastLanguageModel
+from transformers import set_seed
 
 from config import PipelineConfig
 from data.registry import DatasetRegistry
@@ -56,9 +56,6 @@ def main():
 
     builder = PromptBuilderFactory.create(config)
     eval_raw = builder.generate_training_data(eval_docs)
-    
-    # Ensure inference efficiency
-    FastLanguageModel.for_inference = True
 
     logger.info(f"Loading model from {args.checkpoint}...")
     model, tokenizer = FastLanguageModel.from_pretrained(
