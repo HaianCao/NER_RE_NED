@@ -143,7 +143,21 @@ CONFIG = "/kaggle/working/my_config.yaml"   # or use default.yaml
 > **Note:** The `2>&1 | tee` part captures both stdout and stderr into
 > `training_log.txt` while still showing output in the notebook.
 
-### Cell 6 — Evaluate the trained model (Test Phase)
+### Cell 6 — (Optional) Resume Training from a Checkpoint
+If your Kaggle notebook disconnected or you want to train for more epochs, you can resume training from where it stopped by adding the `--resume` flag:
+
+```python
+!accelerate launch \
+    --multi_gpu \
+    --num_processes=2 \
+    /kaggle/working/NER_RE_NED/train.py \
+    --config {CONFIG} \
+    --resume \
+    2>&1 | tee -a /kaggle/working/training_log.txt
+```
+> **Note:** Just adding `--resume` will automatically find the latest `checkpoint-XXX` folder inside your `outputs/` directory and continue training from that exact step.
+
+### Cell 7 — Evaluate the trained model (Test Phase)
 
 During training, the model only tracks `eval_loss` on the Dev set (fast).
 To calculate actual F1, Precision, and Recall, we must generate text on the **Test set** (which is slower).

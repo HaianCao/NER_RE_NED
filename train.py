@@ -165,6 +165,14 @@ def parse_args() -> argparse.Namespace:
         required=True,
         help="Path to the YAML configuration file.",
     )
+    parser.add_argument(
+        "--resume",
+        type=str,
+        nargs="?",
+        const="latest",
+        default=None,
+        help="Resume from a checkpoint. Use --resume to auto-detect the latest in output_dir, or --resume path/to/checkpoint",
+    )
     return parser.parse_args()
 
 
@@ -280,7 +288,17 @@ def main() -> None:
     trainer = NativeSafeTrainer(**trainer_kwargs)
 
     logger.info("Starting training …")
-    trainer.train()
+    
+    resume_ckpt = None
+    if args.resume:
+        if args.resume == "latest":
+            resume_ckpt = True # HF Trainer auto-detects latest in output_dir
+            logger.info("Resuming from latest checkpoint in %s...", config.training.output_dir)
+        else:
+            resume_ckpt = args.resume
+            logger.info("Resuming from specific checkpoint: %s...", resume_ckpt)
+            
+    trainer.train(resume_from_checkpoint=resume_ckpt)
 
     # ------------------------------------------------------------------
     # 7. Save (only on rank 0 to avoid file conflicts)
