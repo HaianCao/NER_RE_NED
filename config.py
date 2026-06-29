@@ -140,6 +140,7 @@ class DataConfig:
 
     train_files: List[DataFileEntry] = field(default_factory=list)
     eval_files: List[DataFileEntry] = field(default_factory=list)
+    test_files: List[DataFileEntry] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         self.train_files = [

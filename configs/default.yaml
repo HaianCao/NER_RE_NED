@@ -64,7 +64,7 @@ training:
   eval_subset_size: 0.2
   
   # Number of eval loops without eval_loss improvement before stopping (0 to disable)
-  early_stopping_patience: 3
+  early_stopping_patience: 10
 
 # ── Data ─────────────────────────────────────────────────────
 # Each entry:
@@ -77,6 +77,11 @@ data:
     - path: "/kaggle/input/n2c2-eng/n2c2_2010_train_vi.jsonl"
       language: "auto"
   eval_files:
+    - path: "/kaggle/input/n2c2-eng/n2c2_2010_test_en.jsonl"
+      language: "auto"
+    - path: "/kaggle/input/n2c2-eng/n2c2_2010_test_vi.jsonl"
+      language: "auto"
+  test_files:
     - path: "/kaggle/input/n2c2-eng/n2c2_2010_test_en.jsonl"
       language: "auto"
     - path: "/kaggle/input/n2c2-eng/n2c2_2010_test_vi.jsonl"
