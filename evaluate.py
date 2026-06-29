@@ -35,6 +35,7 @@ def parse_args():
     parser.add_argument("--config", type=str, required=True, help="Path to config.yaml")
     parser.add_argument("--checkpoint", type=str, required=True, help="Path to LoRA adapter folder")
     parser.add_argument("--batch_size", type=int, default=4, help="Inference batch size")
+    parser.add_argument("--output", type=str, default=None, help="Optional path to save prediction results (e.g. predictions.json)")
     return parser.parse_args()
 
 
@@ -123,6 +124,20 @@ def main():
         is_pairwise = (config.training.re_mode.value == "pairwise")
         re_res = compute_re_metrics(predictions, references, pairwise=is_pairwise)
         logger.info(f"RE Metrics: {json.dumps(re_res, indent=2)}")
+
+    if args.output:
+        logger.info(f"Saving predictions to {args.output} (JSONL format)...")
+        with open(args.output, "w", encoding="utf-8") as f:
+            for pred in predictions:
+                try:
+                    # Parse to ensure it's a valid dict, then dump to a single line
+                    parsed = json.loads(pred)
+                    f.write(json.dumps(parsed, ensure_ascii=False) + "\n")
+                except json.JSONDecodeError:
+                    # If the LLM generated invalid JSON, wrap it safely to not break JSONL
+                    fallback = {"error": "Malformed JSON", "raw_text": pred}
+                    f.write(json.dumps(fallback, ensure_ascii=False) + "\n")
+        logger.info("Predictions saved successfully!")
 
 if __name__ == "__main__":
     main()
