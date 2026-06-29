@@ -143,9 +143,14 @@ CONFIG = "/kaggle/working/my_config.yaml"   # or use default.yaml
 > **Note:** The `2>&1 | tee` part captures both stdout and stderr into
 > `training_log.txt` while still showing output in the notebook.
 
-### Cell 6 — (Optional) Resume Training from a Checkpoint
-If your Kaggle notebook disconnected or you want to train for more epochs, you can resume training from where it stopped by adding the `--resume` flag:
+### Cell 6 — (Optional) Continue Training
 
+There are two ways to continue training, depending on your goal:
+
+#### Scenario A: Resume interrupted training (Keep Optimizer State)
+If your Kaggle notebook disconnected, or you finished 3 epochs and want to increase it to 6 epochs on the same data.
+1. Change `epochs: 6` in your `my_config.yaml`.
+2. Add the `--resume` flag to the training command:
 ```python
 !accelerate launch \
     --multi_gpu \
@@ -156,6 +161,15 @@ If your Kaggle notebook disconnected or you want to train for more epochs, you c
     2>&1 | tee -a /kaggle/working/training_log.txt
 ```
 > **Note:** Just adding `--resume` will automatically find the latest `checkpoint-XXX` folder inside your `outputs/` directory and continue training from that exact step.
+
+#### Scenario B: Start a completely new run on a previously trained model
+If you want to train on a **completely new dataset**, resetting the learning rate and epochs to 0, you can treat your previously trained model as a new Base Model.
+1. In your `my_config.yaml`, change the model name to point to your merged model folder:
+   ```yaml
+   model:
+     name: "/kaggle/working/outputs/final_merged_model"
+   ```
+2. Run the normal training command **WITHOUT** the `--resume` flag (same as Cell 5). The pipeline will load the model in 4-bit, attach new LoRA adapters, and start a fresh training loop.
 
 ### Cell 7 — Evaluate the trained model (Test Phase)
 
