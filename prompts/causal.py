@@ -12,8 +12,8 @@ from typing import Dict, List
 
 from datasets import Dataset as HFDataset
 
-from ..config import LabelConfig, REMode, TaskMode
-from ..data.schemas import StandardizedDocument
+from config import LabelConfig, REMode, TaskMode
+from data.schemas import StandardizedDocument
 from ._helpers import (
     build_joint_output,
     build_ner_output,

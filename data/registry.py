@@ -11,7 +11,7 @@ import json
 import logging
 from typing import List
 
-from ..config import DataFileEntry
+from config import DataFileEntry
 from .adapter import ClinicalFormatAdapter
 from .schemas import StandardizedDocument
 

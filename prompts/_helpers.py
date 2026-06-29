@@ -11,8 +11,8 @@ from __future__ import annotations
 import json
 from typing import Dict, List, Optional, Tuple
 
-from ..config import LabelConfig, REMode, TaskMode
-from ..data.schemas import EntitySpan, RelationTriple, StandardizedDocument
+from config import LabelConfig, REMode, TaskMode
+from data.schemas import EntitySpan, RelationTriple, StandardizedDocument
 
 
 # ---------------------------------------------------------------------------

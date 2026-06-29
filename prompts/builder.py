@@ -12,7 +12,7 @@ from typing import List
 
 from datasets import Dataset as HFDataset
 
-from ..data.schemas import StandardizedDocument
+from data.schemas import StandardizedDocument
 
 
 class BasePromptBuilder(ABC):

@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Tuple
 
-from ..config import PipelineConfig
+from config import PipelineConfig
 
 logger = logging.getLogger(__name__)
 

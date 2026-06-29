@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from ..config import PipelineConfig, TrainingFormat
+from config import PipelineConfig, TrainingFormat
 from .builder import BasePromptBuilder
 from .causal import CausalPromptBuilder
 from .instruction import InstructionPromptBuilder

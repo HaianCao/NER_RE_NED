@@ -15,7 +15,7 @@ import json
 import logging
 from typing import Any, Dict, List, Set, Tuple
 
-from ..utils.span_utils import normalize_term
+from utils.span_utils import normalize_term
 
 logger = logging.getLogger(__name__)
 
