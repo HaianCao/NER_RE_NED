@@ -151,11 +151,14 @@ To calculate actual F1, Precision, and Recall, we must generate text on the **Te
 ```python
 CONFIG = "/kaggle/working/my_config.yaml"   # or use default.yaml
 
-!python /kaggle/working/NER_RE_NED/evaluate.py \
+!accelerate launch \
+    --multi_gpu \
+    --num_processes=2 \
+    /kaggle/working/NER_RE_NED/evaluate.py \
     --config {CONFIG} \
     --checkpoint /kaggle/working/outputs/final_lora_adapter \
-    --batch_size 8 \
-    --output /kaggle/working/predictions.json
+    --batch_size 16 \
+    --output /kaggle/working/predictions.jsonl
 ```
 
 ### Cell 7 — (Optional) Explore the output directory
