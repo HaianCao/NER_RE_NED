@@ -142,6 +142,7 @@ def build_training_args(config: PipelineConfig, num_samples: int) -> TrainingArg
         # DDP / gradient-checkpointing safety flags
         ddp_find_unused_parameters=False,
         gradient_checkpointing_kwargs={"use_reentrant": False},
+        remove_unused_columns=False, # VERY IMPORTANT: prevent Trainer from dropping prompt_length
     )
 
 
@@ -190,6 +191,10 @@ def main() -> None:
     builder = PromptBuilderFactory.create(config)
     train_raw = builder.generate_training_data(train_docs)
     eval_raw = builder.generate_training_data(eval_docs)
+    
+    if len(train_raw) == 0:
+        raise ValueError("Training dataset is empty. Please check if the file paths in config are correct and files exist.")
+        
     logger.info(
         "Train samples: %d  |  Eval samples: %d",
         len(train_raw),
