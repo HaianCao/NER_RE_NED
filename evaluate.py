@@ -5,7 +5,8 @@ import os
 import sys
 from tqdm import tqdm
 
-from accelerate import Accelerator
+from datetime import timedelta
+from accelerate import Accelerator, InitProcessGroupKwargs
 from accelerate.utils import gather_object
 from unsloth import FastLanguageModel
 from transformers import set_seed
@@ -30,8 +31,10 @@ def parse_args():
 def main():
     args = parse_args()
     
-    # Initialize accelerate for Data Parallelism inference
-    accelerator = Accelerator()
+    # Initialize accelerate for Data Parallelism inference with a longer timeout
+    # Default is 10 mins, which is easily exceeded if one GPU has shorter texts and finishes earlier.
+    kwargs = InitProcessGroupKwargs(timeout=timedelta(hours=2))
+    accelerator = Accelerator(kwargs_handlers=[kwargs])
     
     # Only print logs from the main process
     logging.basicConfig(
