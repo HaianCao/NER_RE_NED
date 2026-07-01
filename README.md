@@ -188,6 +188,7 @@ CONFIG = "/kaggle/working/my_config.yaml"   # or use default.yaml
     --batch_size 16 \
     --output /kaggle/working/predictions.jsonl
 ```
+> **Resuming Evaluation:** If the notebook crashes (e.g., CUDA Out of Memory) during evaluation, **do not delete any files**. Just run the exact same command again! The script will automatically find the `predictions.jsonl.part0` files, skip the already processed samples, and resume exactly where it left off. If you ran out of memory, simply lower `--batch_size` (e.g., to 8 or 4) before running the command again.
 
 ### Cell 7 — (Optional) Explore the output directory
 ```python
