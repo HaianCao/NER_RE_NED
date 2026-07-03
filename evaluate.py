@@ -123,7 +123,13 @@ def main():
                     inputs_text.append(prompt)
                     
             # Tokenize batch
-            inputs = tokenizer(inputs_text, return_tensors="pt", padding=True, truncation=True).to(model.device)
+            inputs = tokenizer(
+                inputs_text, 
+                return_tensors="pt", 
+                padding=True, 
+                truncation=True, 
+                max_length=config.model.max_seq_length
+            ).to(model.device)
             
             # Generate
             outputs = model.generate(
