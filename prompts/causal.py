@@ -119,8 +119,8 @@ class CausalPromptBuilder(BasePromptBuilder):
             samples.append(
                 {
                     "doc_id": str(doc.id),
-                    "subject_id": subj.id,
-                    "object_id": obj.id,
+                    "subject_id": subj.entity_id,
+                    "object_id": obj.entity_id,
                     "text": prefix + self._OUTPUT_MARKER + output,
                 }
             )

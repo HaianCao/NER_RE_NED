@@ -169,7 +169,7 @@ class InstructionPromptBuilder(BasePromptBuilder):
             )
             samples.append(
                 self._make_record(
-                    doc, user, build_re_pairwise_output(relation), subj.id, obj.id
+                    doc, user, build_re_pairwise_output(relation), subj.entity_id, obj.entity_id
                 )
             )
         return samples
