@@ -130,8 +130,17 @@ class InstructionPromptBuilder(BasePromptBuilder):
         # JOINT
         return [self._joint_sample(doc)]
 
-    def _make_record(self, user: str, assistant: str) -> Dict[str, str]:
-        return {"system": self._system_prompt, "user": user, "assistant": assistant}
+    def _make_record(
+        self, doc: StandardizedDocument, user: str, assistant: str, subj_id: str = "", obj_id: str = ""
+    ) -> Dict[str, str]:
+        return {
+            "doc_id": str(doc.id),
+            "subject_id": subj_id,
+            "object_id": obj_id,
+            "system": self._system_prompt,
+            "user": user,
+            "assistant": assistant,
+        }
 
     # ------------------------------------------------------------------
     # NER
@@ -139,7 +148,7 @@ class InstructionPromptBuilder(BasePromptBuilder):
 
     def _ner_sample(self, doc: StandardizedDocument) -> Dict[str, str]:
         user = f'Sentence: "{doc.text}"'
-        return self._make_record(user, build_ner_output(doc.entities))
+        return self._make_record(doc, user, build_ner_output(doc.entities))
 
     # ------------------------------------------------------------------
     # RE – pairwise
@@ -158,7 +167,11 @@ class InstructionPromptBuilder(BasePromptBuilder):
                 f"Subject <e1> type: {subj.label}\n"
                 f"Object  <e2> type: {obj.label}"
             )
-            samples.append(self._make_record(user, build_re_pairwise_output(relation)))
+            samples.append(
+                self._make_record(
+                    doc, user, build_re_pairwise_output(relation), subj.id, obj.id
+                )
+            )
         return samples
 
     # ------------------------------------------------------------------
@@ -171,7 +184,7 @@ class InstructionPromptBuilder(BasePromptBuilder):
             f"Entities:\n{entity_list}\n\n"
             f'Sentence: "{doc.text}"'
         )
-        return self._make_record(user, build_re_global_output(doc.relations))
+        return self._make_record(doc, user, build_re_global_output(doc.relations))
 
     # ------------------------------------------------------------------
     # JOINT
@@ -180,5 +193,5 @@ class InstructionPromptBuilder(BasePromptBuilder):
     def _joint_sample(self, doc: StandardizedDocument) -> Dict[str, str]:
         user = f'Sentence: "{doc.text}"'
         return self._make_record(
-            user, build_joint_output(doc.entities, doc.relations)
+            doc, user, build_joint_output(doc.entities, doc.relations)
         )

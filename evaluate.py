@@ -141,7 +141,9 @@ def main():
             
             # Decode only the newly generated tokens
             input_lengths = [len(inp) for inp in inputs.input_ids]
-            for doc_id, out, in_len in zip(batch["id"], outputs, input_lengths):
+            for doc_id_str, subj_id, obj_id, raw_id, out, in_len in zip(
+                batch["doc_id"], batch["subject_id"], batch["object_id"], batch["id"], outputs, input_lengths
+            ):
                 generated_tokens = out[in_len:]
                 gen_text = tokenizer.decode(generated_tokens, skip_special_tokens=True)
                 
@@ -151,8 +153,14 @@ def main():
                 except json.JSONDecodeError:
                     parsed = {"error": "Malformed JSON", "raw_text": gen_text}
                     
-                # Save as {"id": ..., "prediction": ...}
-                f_out.write(json.dumps({"id": doc_id, "prediction": parsed}, ensure_ascii=False) + "\n")
+                # Save with metadata
+                f_out.write(json.dumps({
+                    "id": raw_id, 
+                    "doc_id": doc_id_str,
+                    "subject_id": subj_id,
+                    "object_id": obj_id,
+                    "prediction": parsed
+                }, ensure_ascii=False) + "\n")
             
             # Flush to disk immediately in case of crash
             f_out.flush()
@@ -176,22 +184,50 @@ def main():
         all_results.sort(key=lambda x: x["id"])
         
         # Extract purely the predictions as string JSONs (which compute_metrics expects)
-        all_predictions = [json.dumps(x["prediction"], ensure_ascii=False) for x in all_results]
+        is_pairwise = (config.training.task_mode.value == "re_only" and config.training.re_mode.value == "pairwise")
         
-        # Generate the full evaluation raw dataset again (without sharding) to get all references
-        eval_raw_full = builder.generate_training_data(eval_docs)
-        all_references = eval_raw_full["assistant"]
-        
-        logger.info("Computing metrics...")
-        
-        if config.training.task_mode.value in ["joint", "ner_only"]:
-            ner_res = compute_ner_metrics(all_predictions, all_references)
-            logger.info(f"NER Metrics: {json.dumps(ner_res, indent=2)}")
+        if is_pairwise:
+            logger.info("Aggregating pairwise predictions into global document format...")
+            from collections import defaultdict
+            grouped_preds = defaultdict(list)
+            for x in all_results:
+                rel = x["prediction"].get("relation", "NONE")
+                if rel != "NONE":
+                    grouped_preds[x["doc_id"]].append({
+                        "label": rel,
+                        "subject_id": x["subject_id"],
+                        "object_id": x["object_id"]
+                    })
             
-        if config.training.task_mode.value in ["joint", "re_only"]:
-            is_pairwise = (config.training.re_mode.value == "pairwise")
-            re_res = compute_re_metrics(all_predictions, all_references, pairwise=is_pairwise)
-            logger.info(f"RE Metrics: {json.dumps(re_res, indent=2)}")
+            # Reconstruct the predictions list in the same order as eval_docs
+            all_predictions = []
+            for doc in eval_docs:
+                doc_rels = grouped_preds.get(str(doc.id), [])
+                all_predictions.append(json.dumps({"relations": doc_rels}, ensure_ascii=False))
+                
+            # Create global references directly from eval_docs
+            from prompts._helpers import build_re_global_output
+            all_references = [build_re_global_output(doc.relations) for doc in eval_docs]
+            
+            logger.info("Computing metrics...")
+            re_res = compute_re_metrics(all_predictions, all_references, pairwise=False)
+            logger.info(f"RE Metrics (Aggregated Global): {json.dumps(re_res, indent=2)}")
+        else:
+            all_predictions = [json.dumps(x["prediction"], ensure_ascii=False) for x in all_results]
+            
+            # Generate the full evaluation raw dataset again (without sharding) to get all references
+            eval_raw_full = builder.generate_training_data(eval_docs)
+            all_references = eval_raw_full["assistant"]
+            
+            logger.info("Computing metrics...")
+            
+            if config.training.task_mode.value in ["joint", "ner_only"]:
+                ner_res = compute_ner_metrics(all_predictions, all_references)
+                logger.info(f"NER Metrics: {json.dumps(ner_res, indent=2)}")
+                
+            if config.training.task_mode.value in ["joint", "re_only"]:
+                re_res = compute_re_metrics(all_predictions, all_references, pairwise=False)
+                logger.info(f"RE Metrics: {json.dumps(re_res, indent=2)}")
 
         logger.info(f"Saving final predictions to {args.output} (JSONL format)...")
         with open(args.output, "w", encoding="utf-8") as f:

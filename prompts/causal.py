@@ -89,7 +89,12 @@ class CausalPromptBuilder(BasePromptBuilder):
             'Schema: {"entities": [{"id": "T0", "label": "...", "term": "..."}]}\n\n'
             f'Sentence: "{doc.text}"'
         )
-        return {"text": prefix + self._OUTPUT_MARKER + build_ner_output(doc.entities)}
+        return {
+            "doc_id": str(doc.id),
+            "subject_id": "",
+            "object_id": "",
+            "text": prefix + self._OUTPUT_MARKER + build_ner_output(doc.entities),
+        }
 
     # ------------------------------------------------------------------
     # RE – pairwise
@@ -111,7 +116,14 @@ class CausalPromptBuilder(BasePromptBuilder):
                 f"Object  <e2> type: {obj.label}"
             )
             output = build_re_pairwise_output(relation)
-            samples.append({"text": prefix + self._OUTPUT_MARKER + output})
+            samples.append(
+                {
+                    "doc_id": str(doc.id),
+                    "subject_id": subj.id,
+                    "object_id": obj.id,
+                    "text": prefix + self._OUTPUT_MARKER + output,
+                }
+            )
         return samples
 
     # ------------------------------------------------------------------
@@ -130,7 +142,10 @@ class CausalPromptBuilder(BasePromptBuilder):
             f'Sentence: "{doc.text}"'
         )
         return {
-            "text": prefix + self._OUTPUT_MARKER + build_re_global_output(doc.relations)
+            "doc_id": str(doc.id),
+            "subject_id": "",
+            "object_id": "",
+            "text": prefix + self._OUTPUT_MARKER + build_re_global_output(doc.relations),
         }
 
     # ------------------------------------------------------------------
@@ -149,9 +164,12 @@ class CausalPromptBuilder(BasePromptBuilder):
             f'Sentence: "{doc.text}"'
         )
         return {
+            "doc_id": str(doc.id),
+            "subject_id": "",
+            "object_id": "",
             "text": (
                 prefix
                 + self._OUTPUT_MARKER
                 + build_joint_output(doc.entities, doc.relations)
-            )
+            ),
         }
