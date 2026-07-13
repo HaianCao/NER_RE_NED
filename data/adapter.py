@@ -85,7 +85,10 @@ class ClinicalFormatAdapter:
         )
         relations = self._parse_relations(record, id_to_idx)
 
+        doc_id: str = str(record.get("id", ""))
+        
         return StandardizedDocument(
+            id=doc_id,
             text=text,
             words=words,
             entities=entities,

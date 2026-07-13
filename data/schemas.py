@@ -45,6 +45,9 @@ class RelationTriple:
 class StandardizedDocument:
     """A normalised document ready for prompt construction."""
 
+    id: str
+    """Unique document identifier."""
+
     text: str
     """Original sentence string."""
 
